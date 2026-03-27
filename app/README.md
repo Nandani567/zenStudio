@@ -33,7 +33,7 @@
 ## 📸 Screenshots
 
 ### **1. Project Dashboard**
-![Dashboard](./app/public/dashboard.png)
+![Dashboard](https://github.com/Nandani567/zenStudio/blob/main/app/public/dashboard.png?raw=true)
 *Professional workspace management with Glassmorphism UI.*
 
 ### **2. Collaborative Canvas**
