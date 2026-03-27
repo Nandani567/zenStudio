@@ -33,11 +33,11 @@
 ## 📸 Screenshots
 
 ### **1. Project Dashboard**
-![Dashboard](./app/public/dashboard.png)
+![Dashboard](./public/dashboard.png)
 *Professional workspace management with Glassmorphism UI.*
 
 ### **2. Collaborative Canvas**
-![Canvas](./app/public/canvas.png)
+![Canvas](./public/canvas.png)
 *High-performance drawing interface with grid-snapping enabled.*
 
 ---
