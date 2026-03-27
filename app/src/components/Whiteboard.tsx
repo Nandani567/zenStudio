@@ -1,18 +1,17 @@
-
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Line as KonvaLine } from 'react-konva';
 import { 
-  Pencil, Eraser, Trash2, LayoutGrid, ArrowLeft, Zap, Download, 
-  Layers, Settings2, Activity as ActivityIcon, LogOut, ChevronRight, 
-  Sun, Moon, Presentation, Highlighter, Sparkles, Copy, Check, Link as LinkIcon,
-  MessageSquare, Send, X, Users, Heart, Palette
+  Pencil, Eraser, Trash2, LayoutGrid, ArrowLeft, Zap, 
+  Settings2, Activity as ActivityIcon, LogOut, ChevronRight, 
+  Sun, Moon, Highlighter, Sparkles, Send, X, Users, Heart, Palette,
+  Check, Link as LinkIcon, MessageSquare
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 
-const socket = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001');
+// Use Environment Variable for Backend URL
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+const socket = io(BACKEND_URL);
 
 const Whiteboard = () => {
   const [user, setUser] = useState<string | null>(localStorage.getItem('zenith_user'));
@@ -45,7 +44,11 @@ const Whiteboard = () => {
     socket.emit('get-activity');
     socket.on('projects-list', setProjects);
     socket.on('activity-update', setActivities);
-    socket.on('project-created', (p) => { setCurrentProject(p); setView('canvas'); socket.emit('join-room', p.roomId); });
+    socket.on('project-created', (p) => { 
+      setCurrentProject(p); 
+      setView('canvas'); 
+      socket.emit('join-room', p.roomId); 
+    });
     socket.on('load-history', setLines);
     socket.on('draw-line', (line) => setLines(prev => [...prev, line]));
     socket.on('clear-canvas', () => setLines([]));
@@ -60,10 +63,13 @@ const Whiteboard = () => {
   const handleAuth = async () => {
     try {
       const endpoint = isLogin ? '/api/login' : '/api/signup';
-      const res = await axios.post(`http://localhost:3001${endpoint}`, authData);
+      // Use dynamic BACKEND_URL instead of localhost
+      const res = await axios.post(`${BACKEND_URL}${endpoint}`, authData);
       setUser(res.data.username);
       localStorage.setItem('zenith_user', res.data.username);
-    } catch (err) { alert("Access Denied"); }
+    } catch (err) { 
+      alert("Access Denied: Please check your credentials."); 
+    }
   };
 
   const sendChat = () => {
@@ -75,7 +81,6 @@ const Whiteboard = () => {
 
   const isDark = theme === 'dark';
   
-  // PLAYFUL UI CONFIG
   const UI = {
     bg: isDark ? "bg-[#0A0C10]" : "bg-[#F8FAFF]",
     card: isDark ? "bg-[#161B22] border-[#21262D]" : "bg-white border-[#E1E4E8] shadow-sm",
@@ -110,7 +115,6 @@ const Whiteboard = () => {
 
   return (
     <div className={`h-screen w-full flex overflow-hidden font-sans ${UI.bg} ${UI.text}`}>
-      {/* PLAYFUL SIDEBAR */}
       <aside className={`w-24 flex flex-col items-center py-8 border-r-2 ${UI.sidebar} z-[200]`}>
         <button onClick={() => setView('dashboard')} className="p-4 rounded-3xl bg-indigo-500 mb-12 hover:scale-110 transition-transform shadow-xl shadow-indigo-500/20">
             <Zap size={24} fill="white" stroke="white" />
@@ -204,9 +208,7 @@ const Whiteboard = () => {
             )}
           </main>
         ) : (
-          /* --- CANVAS VIEW: PLAYFUL --- */
           <div className={`h-full w-full relative ${isDark ? 'bg-[#0F1115]' : 'bg-[#FFFFFF]'} animate-in fade-in duration-1000`}>
-            {/* FLOATING NAVBAR */}
             <nav className={`fixed top-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-2 rounded-[2rem] border-2 flex items-center gap-4 shadow-2xl backdrop-blur-2xl ${isDark ? 'bg-black/60 border-neutral-800' : 'bg-white/80 border-neutral-100'}`}>
               <button onClick={() => setView('dashboard')} className="p-3 rounded-2xl text-neutral-400 hover:bg-neutral-500/10 hover:text-indigo-500 transition-all"><ArrowLeft size={20}/></button>
               <div className="w-[2px] h-8 bg-neutral-500/10 mx-2" />
@@ -224,6 +226,18 @@ const Whiteboard = () => {
               <div className="w-[2px] h-8 bg-neutral-500/10 mx-2" />
               <div className="flex gap-3">
                   <button onClick={() => setIsPresenting(!isPresenting)} className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase transition-all shadow-md ${isPresenting ? 'bg-red-500 text-white animate-pulse' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'}`}>Live</button>
+                  <button 
+                    onClick={() => {
+                      if(currentProject?.roomId) {
+                        navigator.clipboard.writeText(currentProject.roomId);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }
+                    }} 
+                    className="p-3 rounded-2xl text-neutral-400 hover:bg-neutral-500/10"
+                  >
+                    {copied ? <Check size={20} className="text-green-500"/> : <LinkIcon size={20}/>}
+                  </button>
                   <button onClick={() => setIsChatOpen(!isChatOpen)} className={`p-3 rounded-2xl relative transition-all ${isChatOpen ? 'bg-indigo-500 text-white' : 'text-neutral-400 hover:bg-neutral-500/10'}`}>
                     <MessageSquare size={20}/>
                   </button>
@@ -231,7 +245,6 @@ const Whiteboard = () => {
               </div>
             </nav>
 
-            {/* CHAT DRAWER: GLASSMORPHISM */}
             <div className={`fixed top-4 right-4 h-[calc(100%-2rem)] w-96 z-[150] transition-all duration-700 ease-in-out rounded-[2.5rem] border-2 shadow-2xl backdrop-blur-3xl overflow-hidden ${isDark ? 'bg-black/60 border-neutral-800' : 'bg-white/90 border-neutral-100'} ${isChatOpen ? 'translate-x-0 opacity-100' : 'translate-x-[110%] opacity-0'}`}>
                 <div className="p-8 border-b-2 border-neutral-500/5 flex justify-between items-center bg-indigo-500/5">
                     <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-3"><Users size={18} className="text-indigo-500"/> Chat Space</h4>
@@ -254,7 +267,6 @@ const Whiteboard = () => {
                 </div>
             </div>
 
-            {/* STATUS HUD */}
             <div className={`fixed bottom-8 left-8 p-4 rounded-2xl border-2 shadow-lg flex items-center gap-4 animate-in fade-in duration-1000 ${isDark ? 'bg-black/40 border-neutral-800' : 'bg-white/80 border-neutral-100'}`}>
                 <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 font-black">{userCount}</div>
                 <div>
