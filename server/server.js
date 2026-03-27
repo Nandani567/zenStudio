@@ -15,10 +15,18 @@ const allowedOrigins = [
 ];
 
 app.use(cors({ 
-  origin: allowedOrigins, 
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('CORS Policy: Origin not allowed'), false);
+    }
+    return callback(null, true);
+  },
   methods: ["GET", "POST"],
   credentials: true 
 }));
+
 
 app.use(express.json());
 
