@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 
-// --- SECURE CORS CONFIG ---
+// --- CLEAN & STABLE CORS CONFIG ---
 const allowedOrigins = [
   "http://localhost:5173", 
   "https://zen-studio-flax.vercel.app"
@@ -16,8 +16,7 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       callback(new Error('CORS Policy Error'));
@@ -25,16 +24,14 @@ const corsOptions = {
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 };
 
-// 1. Apply CORS
+// 1. Apply CORS Middleware
 app.use(cors(corsOptions));
 
-// 2. FIXED LINE: Handle pre-flight for all routes using valid regex
-app.options('(.*)', cors(corsOptions)); 
-
-// 3. Body Parser
+// 2. Body Parser
 app.use(express.json());
 
 // Database Connection
@@ -162,4 +159,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => console.log(`ZENITH_CORE_ONLINE // PORT: ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 ZENITH_CORE_ONLINE // PORT: ${PORT}`));
