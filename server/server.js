@@ -8,15 +8,14 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 
-// --- SECURE & CLEANED CORS CONFIG ---
+// --- SECURE CORS CONFIG ---
 const allowedOrigins = [
   "http://localhost:5173", 
-  "https://zen-studio-flax.vercel.app" // Removed trailing slash
+  "https://zen-studio-flax.vercel.app"
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -29,10 +28,13 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"]
 };
 
-// Apply CORS first before any routes
+// 1. Apply CORS
 app.use(cors(corsOptions));
-app.options('(.*)', cors(corsOptions));
 
+// 2. FIXED LINE: Handle pre-flight for all routes using valid regex
+app.options('(.*)', cors(corsOptions)); 
+
+// 3. Body Parser
 app.use(express.json());
 
 // Database Connection
@@ -100,7 +102,6 @@ app.post('/api/login', async (req, res) => {
 
 // --- SOCKET ENGINE ---
 const server = http.createServer(app);
-
 const io = new Server(server, { 
   cors: { 
     origin: allowedOrigins,
@@ -122,7 +123,6 @@ io.on('connection', (socket) => {
     const newId = Math.random().toString(36).substring(2, 9).toUpperCase();
     const newProject = await Project.create({ ...data, roomId: newId });
     await Activity.create({ user: data.owner, action: `initialized archive "${data.name}"` });
-    
     const allProjects = await Project.find().sort({ createdAt: -1 });
     io.emit('projects-list', allProjects);
     socket.emit('project-created', newProject);
