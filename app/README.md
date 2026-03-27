@@ -37,7 +37,7 @@
 *Professional workspace management with Glassmorphism UI.*
 
 ### **2. Collaborative Canvas**
-![Canvas](./app/public/canvas.png)
+![Canvas] (https://github.com/Nandani567/zenStudio/blob/main/app/public/canvas.png?raw=true)
 *High-performance drawing interface with grid-snapping enabled.*
 
 ---
