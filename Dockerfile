@@ -1,18 +1,20 @@
 # Use a lightweight Node image
 FROM node:18-alpine
 
-# Set the working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm install --production
+# Step 1: Reach INTO the server folder to get the dependencies
+COPY server/package*.json ./
 
-# Copy the rest of the application code
-COPY . .
+# Step 2: Install them (using --omit=dev as recommended by the latest npm)
+RUN npm install --omit=dev
 
-# Expose the port Zenith Flow runs on
+# Step 3: Copy all the backend code from the server folder
+COPY server/ .
+
+# Step 4: Open the port
 EXPOSE 3001
 
-# Start the server
+# Step 5: Start the engine
 CMD ["node", "server.js"]
