@@ -8,25 +8,30 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 
-// --- FIXED CORS CONFIGURATION ---
+// --- SECURE & CLEANED CORS CONFIG ---
 const allowedOrigins = [
   "http://localhost:5173", 
-  "https://zen-studio-flax.vercel.app/"
+  "https://zen-studio-flax.vercel.app" // Removed trailing slash
 ];
 
-app.use(cors({ 
+const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS Policy: Origin not allowed'), false);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS Policy Error'));
     }
-    return callback(null, true);
   },
-  methods: ["GET", "POST"],
-  credentials: true 
-}));
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
 
+// Apply CORS first before any routes
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Enable pre-flight for all routes
 
 app.use(express.json());
 
@@ -35,7 +40,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("ZENITH_DATABASE_SECURE"))
   .catch(err => console.error("DB_CONNECTION_ERROR", err));
 
-// --- SCHEMAS (Kept exactly as yours) ---
+// --- SCHEMAS ---
 const User = mongoose.model('User', new mongoose.Schema({
   username: { type: String, unique: true, required: true },
   password: { type: String, required: true },
@@ -85,16 +90,17 @@ app.post('/api/signup', async (req, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
-  const user = await User.findOne({ username: req.body.username });
-  if (user && await bcrypt.compare(req.body.password, user.password)) {
-    res.json({ success: true, username: user.username });
-  } else { res.status(401).json({ error: "Access Denied" }); }
+  try {
+    const user = await User.findOne({ username: req.body.username });
+    if (user && await bcrypt.compare(req.body.password, user.password)) {
+      res.json({ success: true, username: user.username });
+    } else { res.status(401).json({ error: "Access Denied" }); }
+  } catch (err) { res.status(500).json({ error: "Server Error" }); }
 });
 
 // --- SOCKET ENGINE ---
 const server = http.createServer(app);
 
-// --- FIXED SOCKET CORS ---
 const io = new Server(server, { 
   cors: { 
     origin: allowedOrigins,
@@ -104,7 +110,6 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket) => {
-  // Dashboard Sync
   socket.on('get-projects', async () => {
     socket.emit('projects-list', await Project.find().sort({ createdAt: -1 }));
   });
@@ -113,7 +118,6 @@ io.on('connection', (socket) => {
     socket.emit('activity-update', await Activity.find().sort({ createdAt: -1 }).limit(15));
   });
 
-  // Project Management
   socket.on('create-project', async (data) => {
     const newId = Math.random().toString(36).substring(2, 9).toUpperCase();
     const newProject = await Project.create({ ...data, roomId: newId });
@@ -124,7 +128,6 @@ io.on('connection', (socket) => {
     socket.emit('project-created', newProject);
   });
 
-  // Room Logic (Canvas + Chat)
   socket.on('join-room', async (roomId) => {
     socket.join(roomId);
     const drawingHistory = await Line.find({ roomId }).sort({ createdAt: 1 });
@@ -135,25 +138,21 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('user-count', count);
   });
 
-  // Real-time Drawing
   socket.on('save-line', async ({ roomId, lineData }) => {
     await Line.create({ ...lineData, roomId });
     socket.to(roomId).emit('draw-line', lineData);
   });
 
-  // Real-time Chat
   socket.on('send-chat', async ({ roomId, msg }) => {
     const savedMsg = await Message.create({ roomId, ...msg });
     io.to(roomId).emit('receive-chat', savedMsg);
   });
 
-  // Reset Logic
   socket.on('clear-canvas', async (roomId) => {
     await Line.deleteMany({ roomId });
     io.to(roomId).emit('clear-canvas');
   });
 
-  // Cleanup
   socket.on('disconnecting', () => {
     socket.rooms.forEach(r => {
       const size = (io.sockets.adapter.rooms.get(r)?.size || 1) - 1;
@@ -162,6 +161,5 @@ io.on('connection', (socket) => {
   });
 });
 
-// Use process.env.PORT for Render deployment
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => console.log(`ZENITH_CORE_ONLINE // PORT: ${PORT}`));
