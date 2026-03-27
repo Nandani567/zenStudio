@@ -1,73 +1,64 @@
-# React + TypeScript + Vite
+# 🎨 Zenith Flow | Real-Time Collaborative Whiteboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![React](https://img.shields.io/badge/React-18-cyan)
+![Node](https://img.shields.io/badge/Node-v18+-green)
+![Socket.io](https://img.shields.io/badge/Socket.io-4.0-black)
 
-Currently, two official plugins are available:
+**Zenith Flow** is a professional-grade, multi-user digital canvas built for high-performance collaboration. Designed with a sleek SaaS aesthetic, it enables developers and architects to brainstorm system designs with zero-latency synchronization.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🚀 Live Demo
+🔗 **[View Live Project](https://zen-studio-flax.vercel.app/)**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 💎 Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🖥️ Workspace Management
+* **Bento-style Dashboard:** Organize multiple projects in a clean, grid-based interface.
+* **Collapsible Sidebar:** Maximize drawing space with a smooth, reactive navigation menu.
+* **Database Persistence:** All canvases are saved to MongoDB and can be reloaded at any time.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### ✍️ Collaborative Canvas
+* **Real-Time Sync:** See updates from other users instantly via WebSockets.
+* **Smart Tools:** * **Precision Pencil:** Smooth line rendering with Konva.js.
+  * **Snap-to-Grid:** Align elements perfectly using a 40px architectural grid.
+  * **Laser Tool:** Temporary marks for highlighting specific areas during meetings.
+* **Presence Tracking:** Live "User Count" indicator for active collaborators.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📸 Screenshots
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### **1. Project Dashboard**
+![Dashboard](./public/dashboard.png)
+*Professional workspace management with Glassmorphism UI.*
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### **2. Collaborative Canvas**
+![Canvas](./public/canvas.png)
+*High-performance drawing interface with grid-snapping enabled.*
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+
+## 🛠️ Technical Architecture
+
+### Frontend
+- **React & TypeScript:** Type-safe components and state management.
+- **Tailwind CSS:** Modern styling with dark-mode optimization.
+- **Konva.js:** HTML5 2D canvas library for optimized drawing.
+
+### Backend
+- **Node.js & Express:** Scalable server architecture.
+- **Socket.io:** Bidirectional, event-based communication.
+- **MongoDB & Mongoose:** NoSQL document storage for canvas state and project metadata.
+
+---
+
+## ⚙️ Local Setup
+
+1. **Clone & Install:**
+   ```bash
+   git clone [https://github.com/Nandani567/zenStudio](https://github.com/Nandani567/zenStudio)
+   npm install
