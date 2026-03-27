@@ -7,38 +7,46 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const app = express();
-app.use(cors({ origin: "http://localhost:5173", methods: ["GET", "POST"] }));
+
+// --- FIXED CORS CONFIGURATION ---
+const allowedOrigins = [
+  "http://localhost:5173", 
+  "https://zen-studio-flax.vercel.app/"
+];
+
+app.use(cors({ 
+  origin: allowedOrigins, 
+  methods: ["GET", "POST"],
+  credentials: true 
+}));
+
 app.use(express.json());
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ ZENITH_DATABASE_SECURE"))
-  .catch(err => console.error("❌ DB_CONNECTION_ERROR", err));
+  .then(() => console.log("ZENITH_DATABASE_SECURE"))
+  .catch(err => console.error("DB_CONNECTION_ERROR", err));
 
-// --- SCHEMAS ---
-
-const UserSchema = new mongoose.Schema({
+// --- SCHEMAS (Kept exactly as yours) ---
+const User = mongoose.model('User', new mongoose.Schema({
   username: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
-});
-const User = mongoose.model('User', UserSchema);
+}));
 
-const ProjectSchema = new mongoose.Schema({
+const Project = mongoose.model('Project', new mongoose.Schema({
   name: { type: String, required: true },
   roomId: { type: String, unique: true },
   owner: String,
   createdAt: { type: Date, default: Date.now }
-});
-const Project = mongoose.model('Project', ProjectSchema);
+}));
 
-const ActivitySchema = new mongoose.Schema({
+const Activity = mongoose.model('Activity', new mongoose.Schema({
   user: String,
   action: String,
   time: { type: String, default: () => new Date().toLocaleTimeString() },
   createdAt: { type: Date, default: Date.now }
-});
-const Activity = mongoose.model('Activity', ActivitySchema);
+}));
 
 const Line = mongoose.model('Line', new mongoose.Schema({
   roomId: String,
@@ -51,18 +59,15 @@ const Line = mongoose.model('Line', new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }));
 
-// NEW: Message Schema for Chat History
-const MessageSchema = new mongoose.Schema({
+const Message = mongoose.model('Message', new mongoose.Schema({
   roomId: { type: String, required: true },
   user: { type: String, required: true },
   text: { type: String, required: true },
   time: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
-});
-const Message = mongoose.model('Message', MessageSchema);
+}));
 
 // --- AUTH ROUTES ---
-
 app.post('/api/signup', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -79,12 +84,18 @@ app.post('/api/login', async (req, res) => {
 });
 
 // --- SOCKET ENGINE ---
-
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "http://localhost:5173" } });
+
+// --- FIXED SOCKET CORS ---
+const io = new Server(server, { 
+  cors: { 
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
+  } 
+});
 
 io.on('connection', (socket) => {
-  
   // Dashboard Sync
   socket.on('get-projects', async () => {
     socket.emit('projects-list', await Project.find().sort({ createdAt: -1 }));
@@ -108,31 +119,23 @@ io.on('connection', (socket) => {
   // Room Logic (Canvas + Chat)
   socket.on('join-room', async (roomId) => {
     socket.join(roomId);
-    
-    // 1. Load Drawing History
     const drawingHistory = await Line.find({ roomId }).sort({ createdAt: 1 });
     socket.emit('load-history', drawingHistory);
-    
-    // 2. Load Chat History (Limit to last 50 for performance)
     const chatHistory = await Message.find({ roomId }).sort({ createdAt: 1 }).limit(50);
     socket.emit('receive-chat-history', chatHistory); 
-    
-    // 3. Update Architect Count
     const count = io.sockets.adapter.rooms.get(roomId)?.size || 0;
     io.to(roomId).emit('user-count', count);
   });
 
   // Real-time Drawing
-  socket.on('save-line', async ({ roomId, lineData, userName }) => {
+  socket.on('save-line', async ({ roomId, lineData }) => {
     await Line.create({ ...lineData, roomId });
     socket.to(roomId).emit('draw-line', lineData);
   });
 
   // Real-time Chat
   socket.on('send-chat', async ({ roomId, msg }) => {
-    // Save to DB for persistence
     const savedMsg = await Message.create({ roomId, ...msg });
-    // Broadcast to the entire room
     io.to(roomId).emit('receive-chat', savedMsg);
   });
 
@@ -146,10 +149,11 @@ io.on('connection', (socket) => {
   socket.on('disconnecting', () => {
     socket.rooms.forEach(r => {
       const size = (io.sockets.adapter.rooms.get(r)?.size || 1) - 1;
-      io.to(r).emit('user-count', size);
+      io.to(r).emit('user-count', Math.max(0, size));
     });
   });
 });
 
-const PORT = 3001;
-server.listen(PORT, () => console.log(`🚀 ZENITH_CORE_ONLINE // PORT: ${PORT}`));
+// Use process.env.PORT for Render deployment
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => console.log(`ZENITH_CORE_ONLINE // PORT: ${PORT}`));
