@@ -34,6 +34,8 @@
 
 ### **1. Project Dashboard**
 ![Dashboard](./public/dashboard.png)
+<img width="558" height="348" alt="Screenshot 2026-03-27 144345" src="https://github.com/user-attachments/assets/2c02958f-cdcc-468c-8621-fdfc383e53a4" />
+
 *Professional workspace management with Glassmorphism UI.*
 
 ### **2. Collaborative Canvas**
