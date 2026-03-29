@@ -33,13 +33,14 @@
 ## 📸 Screenshots
 
 ### **1. Project Dashboard**
-![Dashboard](./public/dashboard.png)
-<img width="558" height="348" alt="Screenshot 2026-03-27 144345" src="https://github.com/user-attachments/assets/2c02958f-cdcc-468c-8621-fdfc383e53a4" />
+<img width="1915" height="1025" alt="Screenshot 2026-03-27 144952" src="https://github.com/user-attachments/assets/d0ab739a-63cb-423f-bee6-8aae12487aa3" />
 
 *Professional workspace management with Glassmorphism UI.*
 
 ### **2. Collaborative Canvas**
-![Canvas](./public/canvas.png)
+<img width="1834" height="1028" alt="Screenshot 2026-03-27 144039" src="https://github.com/user-attachments/assets/245e9c08-ae04-4b7d-b477-0759f286a5a4" />
+
+
 *High-performance drawing interface with grid-snapping enabled.*
 
 ---
